@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>概要</title>
+    <style>
+        /* -------------------------------------- */
+        /* ベースのスタイル設定 */
+        /* -------------------------------------- */
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden; 
+            background-color: aliceblue;
+            background-image: url(title00.jpg); /* 背景画像 */
+            background-size:70%;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        /* -------------------------------------- */
+        /* テキストコンテンツの中央配置 */
+        /* -------------------------------------- */
+        #text-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); 
+            max-width: 60%;
+            padding: 20px;
+            color: #2a1510;
+            background-color: rgba(255, 255, 255, 0.564);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        #text-content header {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        #text-content p {
+            font-size: 1em;
+            line-height: 1.6;
+        }
+
+        /* -------------------------------------- */
+        /* ★修正箇所: クリック領域の共通スタイル */
+        /* -------------------------------------- */
+        .clickable-area {
+            position: absolute;
+            cursor: pointer;
+            /* テキストを中央に配置するためのFlexbox設定 */
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            
+            /* テキストのスタイル */
+            text-decoration: none; /* リンクの下線削除 */
+            color: #2a1510;          /* テキストの色を調整 (背景画像に合わせる) */
+            font-size: 2.5em;      /* テキストサイズ */
+            font-weight: bold;     /* テキストを太字に */
+            
+            background-color: transparent;
+            transition: background-color 0.3s;
+            z-index: 2; /* テキストコンテンツより前面に表示 */
+        }
+
+        /* -------------------------------------- */
+        /* 領域の位置とサイズ調整 (変更なし) */
+        /* -------------------------------------- */
+        .tiyle-area {
+            width: 185px; 
+            height: 60px; 
+            bottom: 85px;
+            left: 250px;
+        }
+
+        /* -------------------------------------- */
+        /* ホバー効果の定義（変更なし） */
+        /* -------------------------------------- */
+        .clickable-area:hover {
+            background-color: rgba(235, 235, 235, 0.102);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0), inset 0 0 10px rgb(0, 217, 255);
+        }
+    </style>
+</head>
+<body>
+
+<main id="text-content">
+    <header>分解して理解する。（ゲーム）について</header>
+    <p>　AIの導入などの物事の利便化により、物事を詳細的に知る機会を無くしている現代を生きる人々に向けて
+        自らの手で知ろうとする・知ることの楽しさを思い出してもらえるゲームを目標に制作する。<br>
+        　ビジュアルイメージはテレビ Eテレ『デザインあ - 解散！集合！』から着想を得る形で、
+        分解していく実物写真を使ったコマ撮りアニメーションをゲームに落とし込み、
+        触れたり分解していきながらモチーフを動かしていく2Dゲームとして制作した。
+    </p>
+</main>
+    <a href="index.html" class="clickable-area tiyle-area">タイトル</a>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        // ① 音の読み込み
+        const hoverSound = new Audio("bgm/clickT.mp3");
+        hoverSound.preload = "auto"; // 読み込みを早くする
+
+        // ② 音を鳴らす対象の要素をすべて取得
+        const targets = document.querySelectorAll(".clickable-area");
+
+        // ③ それぞれに「ホバーで音を鳴らす」処理を追加
+        targets.forEach(el => {
+            el.addEventListener("mouseover", () => {
+                hoverSound.currentTime = 0; // 毎回頭から再生
+                hoverSound.play();
+            });
+        });
+    });
+    </script>
+
+
+</body>
+</html>

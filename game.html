@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コマ撮りループ再生画面</title>
+    <style>
+        /* -------------------------------------- */
+        /* 基本スタイル */
+        /* -------------------------------------- */
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url(title00.jpg);
+            background-color: #f0f0f0; /* 背景色を追加 */
+            position: relative;
+        }
+
+        /* -------------------------------------- */
+        /* ヘッダー・タイトル */
+        /* -------------------------------------- */
+        header {
+            font-size: 40px;
+            text-align: center;
+            width: 100%;
+            padding: 20px 0;
+        }
+
+        /* -------------------------------------- */
+        /* タイトルに戻るボタン (既存デザインを再現) */
+        /* -------------------------------------- */
+        .clickable-area {
+            position: absolute;
+            cursor: pointer;
+            top: 50px; 
+            right: 20px;
+            width: 185px; 
+            height: 60px; 
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            color: #2a1510b6;
+            font-size: 1.5em;
+            font-weight: bold;
+            background-color: transparent;
+            transition: background-color 0.3s;
+            z-index: 25; 
+        }
+
+        .clickable-area:hover {
+            background-color: rgba(235, 235, 235, 0.102);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0), inset 0 0 10px rgb(0, 217, 255);
+        }
+
+        /* -------------------------------------- */
+        /* コマ撮りアニメーション領域 */
+        /* -------------------------------------- */
+        #stop-motion-area {
+            margin-top: 50px;
+            width: 80%;
+            max-width: 600px; /* 最大幅を設定 */
+            height: auto;
+            border: 1px solid #ccc;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #current-frame {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    
+    <header>開発中</header>
+
+    <a href="start_select.html" class="clickable-area">タイトル</a>
+
+    <div id="stop-motion-area">
+        <img id="current-frame" src="" alt="コマ撮りアニメーション">
+    </div>
+
+    <script>
+        // --------------------------------------
+        // JavaScriptセクション: コマ撮りループ再生
+        // --------------------------------------
+        const FRAME_DELAY = 100; // 100ミリ秒ごとに画像を切り替え
+        const TOTAL_FRAMES = 250; // 画像の総枚数 (1.JPG から 250.JPG までを想定)
+        
+        // ★重要: あなたの画像ファイル名形式 'IMG(1).JPG' に合わせて修正
+        // パス例: 'img2/IMG(' + 1 + ').JPG'
+        const IMAGE_PATH_BASE = 'img2/IMG (1).JPG'; 
+        const IMAGE_PATH_SUFFIX = ').JPG'; // 拡張子が大文字の 'JPG' であることに注意
+    
+        let currentFrameIndex = 0; // 0から TOTAL_FRAMES-1 までカウント
+        let animationInterval;
+        const currentFrameImage = document.getElementById('current-frame');
+    
+        /**
+         * インデックスに基づいてファイルパスを生成する関数
+         * 画像名形式: IMG(1).JPG, IMG(2).JPG, ... に対応
+         * * @param {number} index - 0から始まるフレームインデックス
+         * @returns {string} - 生成されたファイルパス
+         */
+        function getFramePath(index) {
+            // 画像ファイル内の連番は (1) から始まるため、index に 1 を加算
+            const fileNumber = index + 1; 
+    
+            // パスを結合: 'img2/IMG(' + fileNumber + ').JPG'
+            return `${IMAGE_PATH_BASE}${fileNumber}${IMAGE_PATH_SUFFIX}`; 
+        }
+    
+        function startLoopAnimation() {
+            // 初回ロード
+            currentFrameImage.src = getFramePath(currentFrameIndex);
+    
+            animationInterval = setInterval(() => {
+                currentFrameIndex++;
+                
+                // フレームが最後まで行ったら最初に戻る (ループ)
+                if (currentFrameIndex >= TOTAL_FRAMES) {
+                    currentFrameIndex = 0;
+                }
+    
+                currentFrameImage.src = getFramePath(currentFrameIndex);
+            }, FRAME_DELAY);
+        }
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            startLoopAnimation();
+        });
+    
+        // ページを離れるときにアニメーションを停止
+        window.addEventListener('beforeunload', () => {
+            clearInterval(animationInterval);
+        });
+    </script>
+</body>
+</html>
+</body>
+</html>
