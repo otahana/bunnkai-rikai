@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分解ゲーム画面</title>
+    <style>
+        /* -------------------------------------- */
+        /* CSSセクション（あなたのコードそのまま） */
+        /* -------------------------------------- */
+
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden; 
+            background-image: url(title00.jpg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url(title00.jpg); 
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #static-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            z-index: 50;
+            box-shadow: 0 2px 5px #0000001a;
+        }
+        #game-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2a1510;
+        }
+
+        #start-button {
+            font-size: 3em;
+            padding: 20px 40px;
+            cursor: pointer;
+            background-color: white;
+            border: none;
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0), 
+            inset 0 0 10px rgb(0, 217, 255);
+            color: #2a151054;
+        }
+
+        #game-screen {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background-size: 70%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #stop-motion-area {
+            width: 70%; 
+            height: 100%; 
+            position: absolute;
+            top: 0;
+            left: 15%; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #current-frame {
+            width: 100%; 
+            height: auto;
+            object-fit: contain;
+            z-index: 5;
+        }
+
+        #central-trigger {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .clickable-area {
+            position: absolute;
+            cursor: pointer;
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            color: #2a1510b6;
+            font-size: 1.5em;
+            font-weight: bold;
+            background-color: transparent;
+            transition: background-color 0.3s;
+            z-index: 25; 
+        }
+
+        .tiyle-area {
+            width: 185px; 
+            height: 60px; 
+            top: 50px;      
+            right: 20px;  
+            left: 0px;     
+            bottom: auto;   
+        }
+
+        .clickable-area:hover {
+            background-color: rgba(235, 235, 235, 0.102);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0), inset 0 0 10px rgb(0, 217, 255);
+        }
+
+        #control-buttons {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            z-index: 15;
+        }
+        #control-buttons button {
+            padding: 10px 20px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0);
+            color: #2a151054;
+            margin: 0 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            border: none;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px #0000001a;
+            transition: box-shadow 0.3s, background-color 0.3s, transform 0.3s;
+        }
+
+        #control-buttons button:not(#prev-phase-button):not(#next-phase-button) { 
+            background-color: #ff863bd0; 
+            color: #000;
+        }
+
+        #prev-phase-button {
+            background-color: #ffffff;
+            color: #2a151054;
+        }
+
+        #control-buttons button:disabled {
+            background-color: #f0f0f0; 
+            color: #aaa; 
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #control-buttons button.highlight {
+            background-color: rgba(235, 235, 235, 0.102); 
+            border-color: #00d9ff; 
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0), inset 0 0 10px #00d9ff;
+            font-weight: bold;
+            transform: none; 
+            color: #2a1510; 
+        }
+    </style>
+</head>
+<body>
+    
+    <header id="static-header">
+        <span id="game-title">おもちゃ＜ぜんまいカー＞</span>
+    </header>
+
+    <a href="index.html" class="clickable-area tiyle-area">タイトル</a>
+
+    <button id="start-button">分解を始める</button>
+
+    <div id="game-screen" class="hidden">
+        
+        <div id="stop-motion-area">
+            <img id="current-frame" src="" alt="おもちゃの写真" style="display: none;">
+            <div id="central-trigger" onclick="playCurrentPhase()"></div>
+        </div>
+
+        <div id="control-buttons" class="hidden">
+            <button id="prev-phase-button" onclick="prevPhase()" disabled>前の分解へ</button>
+            <button onclick="playCurrentPhase(1)">► 分解</button>
+            <button onclick="playCurrentPhase(-1)">◄ 集合</button>
+            <button id="next-phase-button" onclick="nextPhase()">次の分解へ</button>
+        </div>
+        
+    </div>
+
+<script>
+// --------------------------------------
+// ★ 各フェーズごとに何コマ目で音を鳴らすか & 使う効果音を設定
+// --------------------------------------
+
+const GIMMICK_PHASES = {
+    'kaitenn':          { frames: 9,  path: 'img/kaitenn/kaitenn',          soundFrame: 1, sound: 'bgm/kaitenn.mp3' },
+    'taiyahazureru':    { frames: 13, path: 'img/taiyahazureru/taiyahazureru', soundFrame: 1, sound: 'bgm/taiyahazureru.mp3' },
+    'taiya':            { frames: 13, path: 'img/taiya/taiya',              soundFrame: 1, sound: 'bgm/taiya.mp3' },
+    'bou':              { frames: 12, path: 'img/bou/bou',                  soundFrame: 1, sound: 'bgm/bou.mp3' },
+    'hiraitewakareru':  { frames: 8,  path: 'img/hiraitewakareru/hiraitewakareru', soundFrame: 1, sound: 'bgm/hiraitewakareru.mp3' },
+    'ue':               { frames: 18, path: 'img/ue/ue',                    soundFrame: 3, sound: 'bgm/ue.mp3' },
+    'sita':             { frames: 25, path: 'img/sita/sita',                soundFrame: 21, sound: 'bgm/sita.mp3' },
+    'mota':             { frames: 8,  path: 'img/mota/mota',                soundFrame: 5, sound: 'bgm/mota.mp3' },
+    'modoru':           { frames: 31, path: 'img/modoru/modoru',            soundFrame: 18, sound: 'bgm/modoru.mp3' },
+    'taisann':          { frames: 9,  path: 'img/taisann/taisann',          soundFrame: 2, sound: 'bgm/taisann.mp3' }
+};
+
+
+// -------------------------
+// 再生順（HTMLそのまま）
+// -------------------------
+let PHASE_ORDER = [
+    'kaitenn',
+    'taiyahazureru',
+    'taiya',
+    'bou',
+    'hiraitewakareru',
+    'ue',    
+    'sita', 
+    'mota',
+    'modoru',
+    'taisann'
+];
+
+const FRAME_DELAY = 100;
+
+const CUSTOM_DELAYS = {
+    'mota': 200, 
+    'modoru': 200,
+    'taisann': 200
+};
+
+
+// --------------------------------------
+// 共通変数
+// --------------------------------------
+let animationInterval;
+let currentPhaseIndex = 0;
+let currentFrameIndex = 0;
+let currentDirection = 1;
+
+let gameScreen;
+let currentFrameImage;
+let controlButtons;
+let nextPhaseButton; 
+let prevPhaseButton; 
+
+
+// --------------------------------------
+// DOM 読み込み後
+// --------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+
+    const startButton = document.getElementById('start-button');
+    gameScreen = document.getElementById('game-screen');
+    currentFrameImage = document.getElementById('current-frame');
+    controlButtons = document.getElementById('control-buttons');
+    nextPhaseButton = document.getElementById('next-phase-button'); 
+    prevPhaseButton = document.getElementById('prev-phase-button'); 
+
+    // -------------------------
+    // ゲーム開始
+    // -------------------------
+    function startGame() {
+        startButton.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+        controlButtons.classList.remove('hidden');
+        loadInitialFrame();
+    }
+
+    // -------------------------
+    // コマ画像パス
+    // -------------------------
+    function getFramePath(phaseName, index) {
+        const phase = GIMMICK_PHASES[phaseName];
+        const frameNum = index.toString().padStart(2, '0');
+        return `${phase.path}${frameNum}.jpg`;
+    }
+
+    // -------------------------
+    // フェーズ最初の画像を読み込む
+    // -------------------------
+    function loadInitialFrame() {
+        const phaseName = PHASE_ORDER[currentPhaseIndex];
+        const initialPath = getFramePath(phaseName, 0);
+
+        currentFrameImage.src = initialPath;
+        currentFrameImage.style.display = 'none';
+        gameScreen.style.backgroundImage = `url(${initialPath})`;
+
+        currentFrameIndex = 0;
+        stopStopMotion();
+        nextPhaseButton.classList.remove('highlight');
+        updateControlButtons();
+    }
+
+    // --------------------------------------
+    // ★★ 再生ロジック（ここで効果音を鳴らす） ★★
+    // --------------------------------------
+    window.playCurrentPhase = function(direction = 1) {
+
+        if (animationInterval) return;
+
+        const phaseName = PHASE_ORDER[currentPhaseIndex];
+        const phase = GIMMICK_PHASES[phaseName];
+
+        currentDirection = direction;
+
+        // 端コマなら動かない
+        if (currentDirection === 1 && currentFrameIndex === phase.frames - 1) return;
+        if (currentDirection === -1 && currentFrameIndex === 0) return;
+
+        nextPhaseButton.classList.remove('highlight');
+
+        gameScreen.style.backgroundImage = 'none';
+        currentFrameImage.style.display = 'block';
+
+        const delay = CUSTOM_DELAYS[phaseName] || FRAME_DELAY;
+
+        // --------------------------------------
+        // ★ 再生開始
+        // --------------------------------------
+        animationInterval = setInterval(() => {
+
+            currentFrameIndex += currentDirection;
+
+            // --------------------------------------
+            // ★ 各フェーズごとの好きなコマで効果音再生
+            // --------------------------------------
+            const soundFrame = phase.soundFrame;
+            const soundFile = phase.sound;
+
+            if (currentFrameIndex === soundFrame) {
+                const audio = new Audio(soundFile);
+                audio.currentTime = 0;
+                audio.play();
+            }
+
+            // 終端処理
+            let animationFinished = false;
+            let finalIndex = currentFrameIndex;
+
+            if (currentFrameIndex < 0) {
+                finalIndex = 0;
+                animationFinished = true;
+            } else if (currentFrameIndex >= phase.frames) {
+                finalIndex = phase.frames - 1;
+                animationFinished = true;
+            }
+
+            if (animationFinished) {
+                currentFrameIndex = finalIndex;
+                stopStopMotion();
+
+                setTimeout(() => {
+                    const finalPath = getFramePath(phaseName, finalIndex);
+                    currentFrameImage.src = finalPath;
+                    currentFrameImage.style.display = 'none';
+                    gameScreen.style.backgroundImage = `url(${finalPath})`;
+
+                    if (currentDirection === 1) {
+                        nextPhaseButton.classList.add('highlight');
+                    }
+                }, delay);
+
+            } else {
+                currentFrameImage.src = getFramePath(phaseName, currentFrameIndex);
+            }
+
+        }, delay);
+    };
+
+    // -------------------------
+    // 再生停止
+    // -------------------------
+    window.stopStopMotion = function() {
+        clearInterval(animationInterval);
+        animationInterval = null;
+    };
+
+    // -------------------------
+    // 前フェーズへ
+    // -------------------------
+    window.prevPhase = function() {
+        stopStopMotion();
+        if (currentPhaseIndex > 0) {
+            currentPhaseIndex--;
+            loadInitialFrame();
+        }
+    };
+
+    // -------------------------
+    // 次フェーズへ
+    // -------------------------
+    window.nextPhase = function() {
+        stopStopMotion();
+        currentPhaseIndex++;
+
+        if (currentPhaseIndex < PHASE_ORDER.length) {
+            loadInitialFrame();
+        } else {
+            window.location.href = 'omotya.html';
+        }
+    };
+
+    function updateControlButtons() {
+        prevPhaseButton.disabled = (currentPhaseIndex === 0);
+    }
+
+    // -------------------------
+    // ボタン
+    // -------------------------
+    startButton.addEventListener('click', startGame);
+
+    // 最初の画像
+    currentFrameImage.src = getFramePath('kaitenn', 0);
+    updateControlButtons();
+
+    // ホバー音
+    const startHoverSound = new Audio("bgm/honking1.mp3");
+    startButton.addEventListener("mouseover", () => {
+        startHoverSound.currentTime = 0;
+        startHoverSound.play();
+    });
+
+});
+
+</script>
+
+</body>
+</html>

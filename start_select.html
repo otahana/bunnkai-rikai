@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゲームスタート画面 - 選択</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            background-image: url(title00.jpg); /* 既存の背景画像を使用 */
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        /* 1. 静的ヘッダーのスタイル (タイトル) */
+        #static-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            z-index: 50;
+            box-shadow: 0 2px 5px #0000001a;
+        }
+        #game-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2a1510;
+        }
+
+        /* 2. スタートボタンのスタイル (既存のデザインを継承) */
+        #start-button {
+            font-size: 3em;
+            padding: 20px 40px;
+            cursor: pointer;
+            background-color: white;
+            border: none;
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0), 
+            inset 0 0 10px rgb(0, 217, 255);
+            color: #2a151054;
+            transition: opacity 0.3s, background-color 0.3s, color 0.3s;
+            margin-top: 30px; 
+        }
+        
+        #start-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+            color: #aaa;
+        }
+
+        /* 3. 選択コンテナのスタイル */
+        #selection-container {
+            display: flex;
+            gap: 50px; 
+            margin-top: 50px; 
+        }
+
+        /* 4. 選択アイテムのスタイル */
+        .selection-item {
+            cursor: pointer;
+            width: 300px; 
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.5); 
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        /* カーソルを合わせた時の浮き上がる効果 */
+        .selection-item:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 選択された時のスタイル */
+        .selection-item.selected {
+            border: 5px solid rgb(0, 217, 255);
+            box-shadow: 0 0 20px rgb(0, 217, 255), 0 5px 15px rgba(0, 0, 0, 0.3);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .selection-item img {
+            max-width: 200px; 
+            max-height: 200px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            pointer-events: none;
+        }
+        
+        .selection-label {
+            position: absolute;
+            bottom: 0px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2a1510;
+        }
+        
+    </style>
+</head>
+<body>
+    
+    <header id="static-header">
+        <span id="game-title">分解ゲーム 選択画面</span>
+    </header>
+
+    <div id="selection-container">
+        
+        <div id="select-toy" class="selection-item" onclick="selectGame('toy')">
+            <img src="img/car.png" alt="おもちゃ" style="max-width: 200px; max-height: 200px;">
+            <span class="selection-label">おもちゃ</span>
+        </div>
+
+        <div id="select-controller" class="selection-item" onclick="selectGame('controller')">
+            <img src="img/ninten.png" alt="コントローラー" style="max-width: 200px; max-height: 200px;">
+            <span class="selection-label">コントローラー</span>
+        </div>
+        
+    </div>
+
+    <button id="start-button" disabled>選択</button>
+
+    <script>
+        let selectedGame = null;
+        const startButton = document.getElementById('start-button');
+
+        window.selectGame = function(gameType) {
+            selectedGame = gameType;
+            
+            document.getElementById('select-toy').classList.remove('selected');
+            document.getElementById('select-controller').classList.remove('selected');
+            document.getElementById(`select-${gameType}`).classList.add('selected');
+            
+            startButton.disabled = false;
+        }
+
+        startButton.addEventListener('click', function() {
+            if (selectedGame === 'toy') {
+                // おもちゃが選択されたら、既存の分解ゲーム画面へ遷移
+                window.location.href = 'decision.html';
+            } else if (selectedGame === 'controller') {
+                // コントローラーが選択されたら、game.htmlへ遷移
+                window.location.href = 'game.html';
+            }
+        });
+    </script>
+    
+    <script>
+        // ---- ホバー音を各アイテムに割り当てる ----
+
+        // ①各ホバー音のAudioを用意
+        const hoverSounds = {
+            toy: new Audio("bgm/toyHover.mp3"),
+            controller: new Audio("bgm/controllerHover.mp3")
+        };
+
+        // ②全ての selection-item を取得
+        const selectionItems = document.querySelectorAll(".selection-item");
+
+        // ③それぞれに音を割り当てる
+        selectionItems.forEach(item => {
+
+            item.addEventListener("mouseover", () => {
+                const id = item.id; // select-toy or select-controller
+                
+                if (id === "select-toy") {
+                    hoverSounds.toy.currentTime = 0;
+                    hoverSounds.toy.play();
+                }
+                if (id === "select-controller") {
+                    hoverSounds.controller.currentTime = 0;
+                    hoverSounds.controller.play();
+                }
+            });
+
+        });
+    </script>
+
+
+</body>
+</html>

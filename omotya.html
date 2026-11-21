@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>おもちゃの解説</title>
+    <style>
+        /* -------------------------------------- */
+        /* CSSセクション */
+        /* -------------------------------------- */
+        
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            background-image: url(title00.jpg);
+            background-color: #fff; /* 背景色を白に設定 */
+            font-family: Arial, sans-serif;
+            overflow: hidden; /* スクロールを禁止 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 解説開始オーバーレイ ★追加 */
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #start-button {
+            font-size: 2.5em;
+            padding: 20px 40px;
+            cursor: pointer;
+            background-color: #00d9ff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s;
+        }
+
+        #start-button:hover {
+            background-color: #00b3cc;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ヘッダー (タイトル) */
+        #header {
+            width: 100%;
+            padding: 15px 20px;
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            z-index: 10;
+        }
+
+        /* メインコンテンツ領域 */
+        #main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* 1. コマ撮りアニメーション領域 (上部) */
+        #animation-area {
+            /* 高さをさらに詰める。画像が小さすぎる場合はvhを調整 */
+            height: 53vh; /* 45vhから40vhに調整 */
+            max-height: 400px; 
+            width: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-color: #eee;
+            /* ★修正: 解説文との間のマージンをゼロにする */
+            margin-bottom: 0px; 
+        }
+
+
+        #repeat-frame {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        /* 2. 解説文領域 (下部) */
+        #explanation-area {
+            /* 高さを広げて、画面の下部を埋めるようにする */
+            height: 25vh; /* 35vhから40vhに増やし、画面の利用率を上げる */
+            width: 80%;
+            /* 解説エリアの上部のパディングを削除（解説文自体の上下のpaddingは維持） */
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto; /* 必要に応じてスクロール可能 */
+            text-align: left;
+            font-size: 1.1em;
+            line-height: 1.6;
+            white-space: pre-wrap; /* \nを反映させるための設定 */
+        }
+
+        /* タイプライターエフェクトのカーソル */
+        .typing-text::after {
+            content: '|';
+            display: inline;
+            animation: blink 0.7s infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* 3. ナビゲーションボタン (丸型) */
+        #nav-buttons {
+            position: absolute;
+            bottom: 50px;
+            width: 80%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .nav-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background-color: #00d9ff; /* 明るい水色 */
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: opacity 0.3s, background-color 0.3s;
+        }
+        
+        .nav-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+        }
+
+        #prev-button {
+            margin-left: -50px; 
+        }
+
+        #next-button {
+            margin-right: -50px; 
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="start-overlay">
+        <h2>おもちゃの分解と部品解説</h2>
+        <p>分解したプルバックカーの部品について、一つずつ解説します。</p>
+        <button id="start-button" onclick="startExplanation()">解説を開始する</button>
+    </div>
+
+    <header id="header" class="hidden">
+        おもちゃ　解説
+    </header>
+
+    <div id="main-content" class="hidden">
+        <div id="animation-area">
+            <img id="repeat-frame" src="" alt="おもちゃの回転画像">
+        </div>
+        
+        <div id="explanation-area">
+            <p id="explanation-text"></p>
+        </div>
+
+        <div id="nav-buttons">
+            <button id="prev-button" class="nav-button" onclick="changeExplanation(-1)" disabled>&#9664;</button>
+            <button id="next-button" class="nav-button" onclick="changeExplanation(1)">&gt;</button>
+        </div>
+    </div>
+
+    <script>
+        // --------------------------------------
+        // JavaScriptセクション
+        // --------------------------------------
+
+        // 1. データ定義
+        const GIMMICK_PHASES = {
+            'kaitenn': { frames: 9, path: 'img/kaitenn/kaitenn' },
+            'taiyahazureru': { frames: 13, path: 'img/taiyahazureru/taiyahazureru' },
+            'taiya': { frames: 13, path: 'img/taiya/taiya' }, 
+            'bou': { frames: 12, path: 'img/bou/bou' },
+            'hiraitewakareru': { frames: 8, path: 'img/hiraitewakareru/hiraitewakareru' },
+            'ue': { frames: 18, path: 'img/ue/ue' },
+            'sita': { frames: 25, path: 'img/sita/sita' },
+            'mota': { frames: 8, path: 'img/mota/mota' }, 
+            'modoru': { frames: 31, path: 'img/modoru/modoru' },
+            'taisann': { frames: 9, path: 'img/taisann/taisann' }
+        };
+
+        const EXPLANATION_DATA = [
+            { 
+                title: "全体", 
+                imagePhase: "kaitenn", 
+                text: "これはプルバックゼンマイで動くおもちゃの全体像です。このおもちゃは、いくつかの主要な部品で構成されています。まずは、車体全体の回転アニメーションをご覧ください。",
+                imagePath: GIMMICK_PHASES.kaitenn.path,
+                frames: GIMMICK_PHASES.kaitenn.frames
+            },
+            { 
+                title: "車体（白いレーシングカーボディ）", 
+                imagePhase: "ue", 
+                text: "車体は、おもちゃの外観を決定するプラスチック製のボディです。プルバックユニットや車軸を内部に固定する役割も果たしています。",
+                imagePath: GIMMICK_PHASES.ue.path,
+                frames: GIMMICK_PHASES.ue.frames
+            },
+            { 
+                title: "タイヤ", 
+                imagePhase: "taiya", 
+                text: "タイヤは路面と接触し、車体を動かすための唯一の駆動部分です。摩擦力と連動して回転し、ユニットの動力を前進力に変えます。",
+                imagePath: GIMMICK_PHASES.taiya.path,
+                frames: GIMMICK_PHASES.taiya.frames
+            },
+            { 
+                title: "車軸（銀色の細い棒）", 
+                imagePhase: "bou", 
+                text: "車軸はタイヤを支え、プルバックユニットのシャフトと連結して回転を伝える役割を持ちます。スムーズな回転のために重要な金属部品です。",
+                imagePath: GIMMICK_PHASES.bou.path,
+                frames: GIMMICK_PHASES.bou.frames
+            },
+            { 
+                title: "黒いシャーシ（土台フレーム）", 
+                imagePhase: "sita", 
+                text: "シャーシは車体下部の土台となるフレームです。プルバックユニットを固定し、車体を支え、スムーズ走りを可能にしています。",
+                imagePath: GIMMICK_PHASES.sita.path,
+                frames: GIMMICK_PHASES.sita.frames
+            },
+            { 
+                title: "プルバックユニット（白い箱＋金属シャフト）", 
+                imagePhase: "mota", 
+                text: "これが動力源となる核心部品です。内部にゼンマイバネが格納されており、車体を引く（プルバックする）ことでバネにエネルギーを蓄え、解放時に車軸を通じて前進力を生み出します。",
+                imagePath: GIMMICK_PHASES.mota.path,
+                frames: GIMMICK_PHASES.mota.frames
+            },
+            { 
+                title: "全体（再構成）", 
+                imagePhase: "modoru", 
+                text: "これらの部品が組み合わさることで、プルバックカー（おもちゃ）として機能します。シンプルな構造の中に、動力を生み出す巧妙な仕組みが詰まっています。",
+                imagePath: GIMMICK_PHASES.modoru.path,
+                frames: GIMMICK_PHASES.modoru.frames
+            }
+        ];
+        
+        // 2. グローバル変数
+        let currentExplanationIndex = 0;
+        let animationInterval;
+        let isTyping = false; // ★追加: タイプライター処理中フラグ
+        const FRAME_DELAY = 200;
+        const TYPING_SPEED = 30;
+        
+        // 3. DOM要素
+        const explanationTextEl = document.getElementById('explanation-text');
+        const repeatFrameEl = document.getElementById('repeat-frame');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const headerEl = document.getElementById('header');
+        const mainContentEl = document.getElementById('main-content');
+        const startOverlayEl = document.getElementById('start-overlay'); // ★追加
+
+        // 4. アニメーション制御
+        function getFramePath(basePath, index) {
+            const frameNum = index.toString().padStart(2, '0');
+            return `${basePath}${frameNum}.jpg`; 
+        }
+
+        function startAnimation(phaseData) {
+            clearInterval(animationInterval);
+            let frameIndex = 0;
+            const maxFrames = phaseData.frames;
+            const basePath = phaseData.imagePath;
+
+            repeatFrameEl.src = getFramePath(basePath, frameIndex);
+            
+            animationInterval = setInterval(() => {
+                frameIndex = (frameIndex + 1) % maxFrames;
+                repeatFrameEl.src = getFramePath(basePath, frameIndex);
+            }, FRAME_DELAY);
+        }
+
+        // 5. タイプライターエフェクト
+        function startTyping(text) {
+            if (isTyping) return;
+            isTyping = true; // タイプ開始
+            
+            explanationTextEl.textContent = ''; 
+            explanationTextEl.classList.add('typing-text');
+
+            // ★修正: タイプライター処理中はボタンを無効化
+            prevButton.disabled = true;
+            nextButton.disabled = true;
+
+            let i = 0;
+            
+            function type() {
+                if (i < text.length) {
+                    explanationTextEl.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, TYPING_SPEED);
+                } else {
+                    explanationTextEl.classList.remove('typing-text'); 
+                    isTyping = false; // タイプ完了
+                    // ★修正: タイプ完了後にボタンの状態を再更新
+                    updateButtonState(); 
+                }
+            }
+            type();
+        }
+
+        // 6. ボタンの状態更新ロジック (タイプライター完了後に呼ばれる) ★追加
+        function updateButtonState() {
+            if (isTyping) {
+                prevButton.disabled = true;
+                nextButton.disabled = true;
+                return;
+            }
+
+            prevButton.disabled = (currentExplanationIndex === 0);
+            
+            // 最終ページかどうかで「次へ」ボタンの表示と機能を変更
+            if (currentExplanationIndex === EXPLANATION_DATA.length - 1) {
+                nextButton.textContent = 'タイトルへ';
+                nextButton.disabled = false; // 常にタイトルへ遷移可能
+            } else {
+                nextButton.textContent = '>';
+                nextButton.disabled = false;
+            }
+        }
+
+        // 7. 解説の切り替え
+        function updatePage() {
+            const data = EXPLANATION_DATA[currentExplanationIndex];
+
+            // コマ撮りアニメーションを開始
+            startAnimation(data);
+
+            // 解説文のタイプライターエフェクトを開始
+            startTyping(`【${data.title}】\n\n${data.text}`);
+
+            // ボタンの状態を更新（タイプライター内で再更新される）
+            updateButtonState();
+        }
+
+        window.changeExplanation = function(direction) {
+            // ★追加: タイプライター処理中は無視
+            if (isTyping) return;
+            
+            // 最終ページで「タイトルへ」を押した場合
+            if (currentExplanationIndex === EXPLANATION_DATA.length - 1 && direction === 1) {
+                // MDA.html (分解ゲームのタイトルページ) に遷移
+                window.location.href = 'index.html'; 
+                return;
+            }
+
+            currentExplanationIndex += direction;
+            
+            // 範囲制限
+            if (currentExplanationIndex < 0) {
+                currentExplanationIndex = 0;
+            } else if (currentExplanationIndex >= EXPLANATION_DATA.length) {
+                // 最終ページを維持 (上記で遷移するため通常はここには来ない)
+                currentExplanationIndex = EXPLANATION_DATA.length - 1; 
+            }
+            
+            updatePage();
+        }
+        
+        // 8. 解説開始関数 ★追加
+        window.startExplanation = function() {
+            startOverlayEl.classList.add('hidden');
+            headerEl.classList.remove('hidden');
+            mainContentEl.classList.remove('hidden');
+            // 初期化処理を開始
+            if (EXPLANATION_DATA.length > 0) {
+                updatePage();
+            }
+        }
+
+        // 9. 初期化（ページロード時の処理はスタート画面表示のみ）
+        document.addEventListener('DOMContentLoaded', () => {
+            // 特に何もしない（画面はオーバーレイが支配している）
+        });
+
+     
+        //--------------------------------------
+// ★ ホバー共通効果音（開始ボタン & すべての丸ボタン）
+//--------------------------------------
+
+// 使う効果音（好きな音を入れてOK）
+const hoverSound = new Audio("bgm/hover.mp3");
+
+// 対象となるボタンをまとめて指定
+const hoverButtons = [
+    document.getElementById("start-button"), // 開始ボタン
+    document.getElementById("prev-button"),  // ← ボタン
+    document.getElementById("next-button")   // → ボタン
+];
+
+// それぞれにホバー時イベントを付ける
+hoverButtons.forEach(btn => {
+    if (!btn) return;
+
+    btn.addEventListener("mouseenter", () => {
+        hoverSound.currentTime = 0;
+        hoverSound.play();
+    });
+});
+
+
+    </script>
+</body>
+</html>
